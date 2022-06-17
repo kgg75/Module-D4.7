@@ -1,0 +1,34 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+
+{% block title %}
+    {{ one_post.title|truncatechars:20 }}
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим сам товар, идентификатор которого был передан в url -->
+{% block content %}
+    <h1>{{ one_post.title }}</h1>
+    <h2>автор: {{ one_post.author.user.username }}</h2>
+    <h3>дата, время публикации: {{ one_post.datetime|date:'d M Y, H:m' }}</h3>
+    <h4>категория: {% for cat in one_post.post_category.all %} {{ cat.name|default:"---" }} {% endfor %}</h4>
+    <hr>
+    <h5>Исходный текст:</h5>
+    <h6>{{ one_post.text }}</h6>
+    <h5>После цензуры:</h5>
+    <h6>{{ one_post.text|censor }}</h6>
+    <hr>
+    <h6>рейтинг статьи: {{ one_post.rating }}</h6>
+    <hr>
+    <h3>Комментарии:</h3>
+    <hr>
+    {% for comment in comments %}
+        <h5>{{ comment.user.username }}</h5>
+        <h6>{{ one_post.datetime|date:'d M Y, H:m' }}</h6>
+        <h5>{{ comment.text }}</h5>
+        <h6>[{{ comment.rating }}]</h6>
+        <hr>
+    {% endfor %}
+
+{% endblock content %}

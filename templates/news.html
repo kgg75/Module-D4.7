@@ -1,0 +1,76 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+{% load custom_tags %}
+
+{% block title %}
+    Новостной портал
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим сам товар, идентификатор которого был передан в url -->
+{% block content %}
+    <h1>Все новости на одном портале!</h1>
+    <!-- Используем переданную из представления переменную time_now
+    и применяем к ней фильтр date. По назначению этот фильтр очень похож
+    на метод strftime у объекта datetime в Python — вывод времени
+    в указанном формате. -->
+    <h6>сегодня {{ time_now|date:'d M Y A' }}</h6>
+
+    {# Добавляем форму, которая объединяет набор полей, которые будут отправляться в запросе #}
+    <form action="" method="get">
+       {# Переменная, которую мы передали через контекст, может сгенерировать нам форму с полями #}
+       {{ filterset.form.as_p }}
+       {# Добавим кнопку отправки данных формы #}
+       <input type="submit" value="Найти" />
+    </form>
+
+    <hr>
+    {% if news %}
+        <table>
+            <tr>
+               <td>Заголовок</td>
+               <td>Категория</td>
+               <td>Автор</td>
+               <td>Дата, время публикации</td>
+               <td>Текст</td>
+               <td>Рейтинг статьи</td>
+            </tr>
+
+            {% for new in news %} <!--.objects.order_by('datetime') -->
+            <tr>
+               <td>{{ new.title|truncatechars:20 }}</td>
+               <td>{% for cat in new.post_category.all %} {{ cat.name|default:"---" }} {% endfor %}</td>
+               <td>{{ new.author.user.username }}</td>
+               <td>{{ new.datetime|date:'d M Y, H:m' }}</td>
+               <td>{{ new.text|truncatechars:20 }}</td>
+               <td>{{ new.rating }}</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+    {% else %}
+        <h2>Увы, ничего достойного вашего внимания пока не случилось :((</h2>
+    {% endif %}
+
+    {# Информация о предыдущих страницах #}
+    {% if page_obj.has_previous %}
+        {# Для каждой ссылки пагинации указываем обработку через новый тег #}
+        <a href="?{% url_replace page=1 %}">1</a>
+        {% if page_obj.previous_page_number != 1 %}
+            ...
+            <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+        {% endif %}
+    {% endif %}
+
+    {{ page_obj.number }}
+
+    {% if page_obj.has_next %}
+        <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+        {% if paginator.num_pages != page_obj.next_page_number %}
+            ...
+            <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    {% endif %}
+
+{% endblock content %}
